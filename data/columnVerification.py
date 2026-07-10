@@ -16,3 +16,14 @@ print(birmingham[[
     "all_motor_vehicles",
     "year"
 ]].head())
+
+birmingham = birmingham[birmingham["year"] == 2025]
+
+print("2025 Records:", len(birmingham))
+
+print(birmingham[[
+    "road_name",
+    "latitude",
+    "longitude",
+    "all_motor_vehicles"
+]].head())
