@@ -1,0 +1,9 @@
+# Large datasets
+data/*.csv
+
+# Python
+__pycache__/
+*.pyc
+
+# Jupyter
+.ipynb_checkpoints/
