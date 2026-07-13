@@ -89,20 +89,30 @@ parking.to_csv(
     "output/parking_with_traffic.csv",
     index=False
 )
+# ----------------------------------------
+# Dynamic Throughput Component (40%)
+# ----------------------------------------
+
+max_vehicle = parking["vehicle_count"].max()
+
+parking["dynamic_stress"] = (
+    parking["vehicle_count"] / max_vehicle
+) * 0.4
+
+parking["dynamic_stress_percent"] = (
+    parking["dynamic_stress"] * 100
+).round(2)
 
 print("\nDone!")
 print("Output saved to:")
 print("output/parking_with_traffic.csv")
 
-print("\nPreview:\n")
 print(
     parking[
         [
             "name",
-            "nearest_road",
             "vehicle_count",
-            "traffic_level",
-            "distance"
+            "dynamic_stress_percent"
         ]
     ].head()
 )
