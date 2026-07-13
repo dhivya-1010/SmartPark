@@ -5,6 +5,7 @@ from scipy.spatial import KDTree
 # Load Parking Dataset
 # ----------------------------------------
 parking = pd.read_csv("data/parking.csv")
+parking = parking.dropna(subset=["name"])
 
 # Remove rows with missing coordinates
 parking = parking.dropna(subset=["latitude", "longitude"])
