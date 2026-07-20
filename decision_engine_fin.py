@@ -7,85 +7,142 @@ parking = pd.read_csv("output/systemic_stress.csv")
 
 print("Parking Locations :", len(parking))
 
+
 # ======================================
-# Rule-Based Decision Engine
+# Government Decision Engine
 # ======================================
-def generate_recommendation(row):
+def generate_decision(row):
 
     priority = row["Priority"]
-    utilization = row["UtilizationLevel"]
     traffic = row["TrafficLevel"]
+    utilization = row["UtilizationLevel"]
+    peak_hour = row["PeakHour"]
+    peak_day = row["PeakDay"]
 
-    # Critical situations
+    # ======================================
+    # CRITICAL
+    # ======================================
     if priority == "Critical":
-        return (
-            "Immediate intervention required. "
-            "Activate dynamic pricing, redirect vehicles to nearby parking, "
-            "and deploy traffic management measures."
+
+        reason = (
+            f"Critical parking demand caused by {utilization.lower()} parking utilization "
+            f"and {traffic.lower()} surrounding traffic."
         )
 
-    # High stress
+        immediate = (
+            "• Activate dynamic parking pricing\n"
+            "• Redirect vehicles to nearby available parking facilities\n"
+            "• Deploy traffic management personnel immediately\n"
+            "• Update digital parking guidance signboards\n"
+            f"• Increase monitoring around {peak_hour}:00 on {peak_day}"
+        )
+
+        long_term = (
+            "Evaluate parking capacity expansion; "
+            "Review parking pricing policy; "
+            "Assess surrounding road network improvements."
+        )
+
+    # ======================================
+    # HIGH
+    # ======================================
     elif priority == "High":
 
-        if traffic == "Very High":
-            return (
-                "Redirect incoming vehicles to nearby parking areas and "
-                "optimize traffic signal timings."
-            )
-
-        elif utilization == "High":
-            return (
-                "Increase parking turnover through pricing or time limits."
-            )
-
-        else:
-            return (
-                "Closely monitor occupancy and prepare overflow parking."
-            )
-
-    # Moderate stress
-    elif priority == "Moderate":
-
-        if traffic in ["High", "Very High"]:
-            return (
-                "Increase monitoring during peak traffic periods."
-            )
-
-        else:
-            return (
-                "Monitor occupancy trends and optimize parking guidance."
-            )
-
-    # Low stress
-    else:
-        return (
-            "No immediate action required. Continue routine monitoring."
+        reason = (
+            f"High parking utilization with {traffic.lower()} surrounding traffic "
+            f"during peak demand periods."
         )
 
-# ======================================
-# Apply Decision Engine
-# ======================================
-parking["Recommendation"] = parking.apply(
-    generate_recommendation,
-    axis=1
-)
+        immediate = (
+            "• Redirect vehicles to nearby parking facilities\n"
+            "• Optimize traffic signal timings\n"
+            "• Increase parking enforcement during peak periods\n"
+            f"• Monitor operations around {peak_hour}:00 on {peak_day}"
+        )
+
+        long_term = (
+            "Review parking allocation strategy; "
+            "Improve traffic signal coordination; "
+            "Evaluate demand management policies."
+        )
+
+    # ======================================
+    # MODERATE
+    # ======================================
+    elif priority == "Moderate":
+
+        reason = (
+            f"Moderate parking demand requiring operational monitoring "
+            f"during peak periods."
+        )
+
+        immediate = (
+            "• Increase monitoring during peak hours\n"
+            "• Update parking guidance information\n"
+            "• Monitor surrounding traffic conditions\n"
+            f"• Focus monitoring around {peak_hour}:00 on {peak_day}"
+        )
+
+        long_term = (
+            "Monitor utilization trends periodically; "
+            "Review parking operations if demand increases."
+        )
+
+    # ======================================
+    # LOW
+    # ======================================
+    else:
+
+        reason = (
+            "Low parking utilization with manageable surrounding traffic conditions."
+        )
+
+        immediate = (
+            "• Continue routine monitoring\n"
+            "• Maintain current parking operations\n"
+            "• Perform scheduled inspections"
+        )
+
+        long_term = (
+            "Continue periodic performance assessment and monitor future demand trends."
+        )
+
+    return pd.Series(
+        [reason, immediate, long_term]
+    )
+
 
 # ======================================
-# Save
+# Apply Government Decision Engine
+# ======================================
+parking[
+    [
+        "Reason",
+        "ImmediateActions",
+        "LongTermConsiderations"
+    ]
+] = parking.apply(generate_decision, axis=1)
+
+
+# ======================================
+# Save Final Output
 # ======================================
 parking.to_csv(
     "output/final_decision_intelligence.csv",
     index=False
 )
 
-print("\nDecision Engine Completed!\n")
+
+print("\nGovernment Decision Engine Completed!\n")
 
 print(
     parking[
         [
             "ParkingName",
             "Priority",
-            "Recommendation"
+            "Reason",
+            "ImmediateActions",
+            "LongTermConsiderations"
         ]
     ].head()
 )
