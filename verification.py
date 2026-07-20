@@ -1,9 +1,5 @@
 import pandas as pd
 
-parking = pd.read_csv("data/parking.csv")
+df = pd.read_csv("output/parking_occupancy_summary.csv")
 
-print(parking.columns)
-
-print()
-
-print(parking.head())
+print(df["SystemCodeNumber"].tolist())
