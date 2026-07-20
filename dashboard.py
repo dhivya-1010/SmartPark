@@ -743,18 +743,18 @@ and infrastructure improvements.
 
     pdf = generate_pdf(df)
 
-st.download_button(
-    "📄 Download Executive Report (PDF)",
-    pdf,
-    "Executive_Report.pdf",
-    mime="application/pdf"
-)
+    st.download_button(
+        "📄 Download Executive Report (PDF)",
+        pdf,
+        "Executive_Report.pdf",
+        mime="application/pdf"
+    )
 
-docx = generate_docx(df)
+    docx = generate_docx(df)
 
-st.download_button(
-    "📝 Download Executive Report (DOCX)",
-    docx,
-    "Executive_Report.docx",
-    mime="application/vnd.openxmlformats-officedocument.wordprocessingml.document"
-)
+    st.download_button(
+        "📝 Download Executive Report (DOCX)",
+        docx,
+        "Executive_Report.docx",
+        mime="application/vnd.openxmlformats-officedocument.wordprocessingml.document"
+    )
