@@ -33,9 +33,20 @@ summary = (
 
 # Occupancy Ratio
 summary["OccupancyRatio"] = (
-    summary["AvgOccupancy"] /
-    summary["Capacity"]
-).round(3)
+    (summary["AvgOccupancy"] / summary["Capacity"]) * 100
+).round(2)
+
+def utilization_level(ratio):
+    if ratio < 30:
+        return "Low"
+    elif ratio < 60:
+        return "Moderate"
+    elif ratio < 80:
+        return "High"
+    else:
+        return "Critical"
+
+summary["UtilizationLevel"] = summary["OccupancyRatio"].apply(utilization_level)
 
 # ==========================
 # Peak Hour
