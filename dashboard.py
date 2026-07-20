@@ -3,6 +3,155 @@ import pandas as pd
 import folium
 from streamlit_folium import st_folium
 import plotly.express as px
+from io import BytesIO
+
+from reportlab.platypus import (
+    SimpleDocTemplate,
+    Paragraph,
+    Spacer
+)
+
+from reportlab.lib.styles import getSampleStyleSheet
+
+from docx import Document
+
+def generate_pdf(df):
+
+    buffer = BytesIO()
+
+    doc = SimpleDocTemplate(buffer)
+
+    styles = getSampleStyleSheet()
+
+    story = []
+
+    story.append(
+        Paragraph(
+            "<b>Urban Decision Intelligence Platform</b>",
+            styles["Title"]
+        )
+    )
+
+    story.append(
+        Paragraph(
+            "Executive Decision Report",
+            styles["Heading2"]
+        )
+    )
+
+    story.append(Spacer(1,20))
+
+    story.append(
+        Paragraph(
+            f"<b>Total Parking Facilities :</b> {len(df)}",
+            styles["BodyText"]
+        )
+    )
+
+    story.append(
+        Paragraph(
+            f"<b>Critical Locations :</b> {(df['Priority']=='Critical').sum()}",
+            styles["BodyText"]
+        )
+    )
+
+    story.append(
+        Paragraph(
+            f"<b>Average Systemic Stress :</b> {df['SystemicStress'].mean():.2f}",
+            styles["BodyText"]
+        )
+    )
+
+    story.append(
+        Paragraph(
+            f"<b>Average Vehicle Count :</b> {df['VehicleCount'].mean():,.0f}",
+            styles["BodyText"]
+        )
+    )
+
+    story.append(Spacer(1,20))
+
+    story.append(
+        Paragraph(
+            "<b>Executive Summary</b>",
+            styles["Heading2"]
+        )
+    )
+
+    story.append(
+        Paragraph(
+            """
+The Urban Decision Intelligence Platform integrates
+parking and traffic information to identify high-stress
+parking facilities and provide prescriptive recommendations
+for urban planners and government agencies.
+
+Facilities with Critical priority require immediate
+operational attention to improve traffic flow and
+parking efficiency.
+""",
+            styles["BodyText"]
+        )
+    )
+
+    doc.build(story)
+
+    buffer.seek(0)
+
+    return buffer
+def generate_docx(df):
+
+    doc = Document()
+
+    doc.add_heading(
+        "Urban Decision Intelligence Platform",
+        0
+    )
+
+    doc.add_heading(
+        "Executive Decision Report",
+        level=1
+    )
+
+    doc.add_paragraph(
+        f"Total Parking Facilities : {len(df)}"
+    )
+
+    doc.add_paragraph(
+        f"Critical Locations : {(df['Priority']=='Critical').sum()}"
+    )
+
+    doc.add_paragraph(
+        f"Average Stress : {df['SystemicStress'].mean():.2f}"
+    )
+
+    doc.add_paragraph(
+        f"Average Vehicle Count : {df['VehicleCount'].mean():,.0f}"
+    )
+
+    doc.add_heading(
+        "Executive Summary",
+        level=2
+    )
+
+    doc.add_paragraph(
+        """
+The Urban Decision Intelligence Platform analyzes
+traffic intensity and parking conditions to support
+government decision making through systemic stress
+evaluation and prescriptive recommendations.
+"""
+    )
+
+    buffer = BytesIO()
+
+    doc.save(buffer)
+
+    buffer.seek(0)
+
+    return buffer
+
+
 
 # ======================================
 # Page Configuration
@@ -591,3 +740,21 @@ and infrastructure improvements.
         "Decision_Intelligence_Report.csv",
         "text/csv"
     )
+
+    pdf = generate_pdf(df)
+
+st.download_button(
+    "📄 Download Executive Report (PDF)",
+    pdf,
+    "Executive_Report.pdf",
+    mime="application/pdf"
+)
+
+docx = generate_docx(df)
+
+st.download_button(
+    "📝 Download Executive Report (DOCX)",
+    docx,
+    "Executive_Report.docx",
+    mime="application/vnd.openxmlformats-officedocument.wordprocessingml.document"
+)
