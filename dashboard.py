@@ -491,5 +491,103 @@ elif selected == "🚦 Decision Engine":
 # ======================================
 elif selected == "📑 Reports":
 
-    st.title("📑 Reports")
-    st.info("Module under development.")
+    st.title("📑 Executive Reports")
+
+    st.markdown("### Urban Decision Intelligence Executive Summary")
+
+    st.divider()
+
+    # ==============================
+    # Executive KPIs
+    # ==============================
+
+    col1, col2, col3, col4 = st.columns(4)
+
+    col1.metric(
+        "Parking Facilities",
+        len(df)
+    )
+
+    col2.metric(
+        "Critical Locations",
+        (df["Priority"] == "Critical").sum()
+    )
+
+    col3.metric(
+        "Average Stress",
+        f"{df['SystemicStress'].mean():.2f}"
+    )
+
+    col4.metric(
+        "Average Vehicle Count",
+        f"{df['VehicleCount'].mean():,.0f}"
+    )
+
+    st.divider()
+
+    # ==============================
+    # Executive Summary
+    # ==============================
+
+    st.subheader("🏛 Executive Summary")
+
+    summary = f"""
+The analysis evaluated **{len(df)} parking facilities** by integrating
+parking characteristics with surrounding traffic conditions.
+
+The overall average Systemic Stress Index is
+**{df['SystemicStress'].mean():.2f}**.
+
+A total of **{(df['Priority']=='Critical').sum()}**
+locations require immediate intervention.
+
+The platform recommends prioritizing these facilities
+through traffic management, dynamic parking policies,
+and infrastructure improvements.
+"""
+
+    st.success(summary)
+
+    st.divider()
+
+    # ==============================
+    # Top Priority Locations
+    # ==============================
+
+    st.subheader("🚨 Highest Priority Locations")
+
+    report = df.sort_values(
+        "SystemicStress",
+        ascending=False
+    )
+
+    st.dataframe(
+
+        report[
+            [
+                "ParkingName",
+                "Priority",
+                "SystemicStress",
+                "TrafficLevel",
+                "Reason"
+            ]
+        ].head(10),
+
+        hide_index=True,
+        use_container_width=True
+    )
+
+    st.divider()
+
+    # ==============================
+    # Download Report
+    # ==============================
+
+    csv = df.to_csv(index=False).encode("utf-8")
+
+    st.download_button(
+        "⬇ Download Decision Intelligence Report",
+        csv,
+        "Decision_Intelligence_Report.csv",
+        "text/csv"
+    )
