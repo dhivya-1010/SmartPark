@@ -1,0 +1,9 @@
+Intervention,AvgSystemicStress,MaxSystemicStress,CriticalCount,HighCount,StressAbove60,TrafficReduction,ParkingReduction
+New Parking Facility,44.91,90.12,2,3,5,0.02,0.3
+Increase Parking Capacity,45.29,90.66,2,3,5,0.0,0.25
+Dynamic Pricing,46.05,91.73,2,4,6,0.05,0.15
+Public Transport Incentives,46.28,92.04,2,4,6,0.15,0.12
+Shuttle Services,46.43,92.25,2,4,6,0.12,0.1
+Signal Optimization,46.96,93.0,2,4,6,0.1,0.03
+Traffic Diversion,47.04,93.11,2,4,6,0.18,0.02
+No Intervention,47.19,93.32,2,4,6,0.0,0.0

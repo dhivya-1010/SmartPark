@@ -5,6 +5,8 @@ from streamlit_folium import st_folium
 import plotly.express as px
 from io import BytesIO
 
+import scenario_simulation as scenario
+
 from reportlab.platypus import (
     SimpleDocTemplate,
     Paragraph,
@@ -183,6 +185,7 @@ selected = st.sidebar.radio(
         "🏠 Dashboard",
         "📊 Parking Analysis",
         "🗺️ Traffic Intelligence",
+        "🌍 Scenario Simulation",
         "🚦 Decision Engine",
         "📑 Reports"
     ]
@@ -233,7 +236,7 @@ if selected == "🏠 Dashboard":
     # ======================================
     # Top Priority Parking
     # ======================================
-    st.subheader("🏆 Top Priority Parking Locations")
+    st.subheader("Top Priority Parking Locations")
 
     priority_order = {
         "Critical": 4,
@@ -420,12 +423,68 @@ elif selected == "📊 Parking Analysis":
 
     st.divider()
 
-    fig = px.histogram(
-        df,
-        x="SystemicStress",
-        nbins=10,
-        title="Systemic Stress Distribution"
+# ================================
+    # Systemic Stress Distribution
+    # Split into discrete priority bands with a clear color strip
+    # and gaps between bars for easy count reading.
+    # ================================
+    stress_bins = df.copy()
+
+    def stress_band(stress):
+        if stress < 30:
+            return "Low (0-30)"
+        elif stress < 60:
+            return "Moderate (30-60)"
+        elif stress < 80:
+            return "High (60-80)"
+        else:
+            return "Critical (80-100)"
+
+    stress_bins["StressBand"] = stress_bins["SystemicStress"].apply(stress_band)
+
+    band_order = [
+        "Low (0-30)",
+        "Moderate (30-60)",
+        "High (60-80)",
+        "Critical (80-100)"
+    ]
+
+    band_counts = (
+        stress_bins["StressBand"]
+        .value_counts()
+        .reindex(band_order)
+        .fillna(0)
+        .astype(int)
+        .reset_index()
     )
+    band_counts.columns = ["Stress Band", "Count"]
+
+    # Color strip: distinct color per band
+    band_colors = {
+        "Low (0-30)": "green",
+        "Moderate (30-60)": "blue",
+        "High (60-80)": "orange",
+        "Critical (80-100)": "red"
+    }
+
+    fig = px.bar(
+        band_counts,
+        x="Stress Band",
+        y="Count",
+        color="Stress Band",
+        color_discrete_map=band_colors,
+        title="Systemic Stress Distribution",
+        text="Count"
+    )
+
+    # Add clear gaps between bars and show counts on top
+    fig.update_layout(
+        bargap=0.5,
+        xaxis_title="Systemic Stress Band",
+        yaxis_title="Number of Facilities",
+        showlegend=False
+    )
+    fig.update_traces(textposition="outside")
 
     st.plotly_chart(fig, use_container_width=True)
 
@@ -577,6 +636,208 @@ Traffic Level: {row['TrafficLevel']}
 
         hide_index=True,
         use_container_width=True
+    )
+
+# ======================================
+# Scenario Simulation
+# ======================================
+elif selected == "🌍 Scenario Simulation":
+
+    st.title("🌍 Environmental Change Based Scenario Simulation")
+    st.markdown("### Decision Intelligence layer for evaluating future urban scenarios")
+
+    st.divider()
+
+    # ======================================
+    # Scenario Controls
+    # ======================================
+    left, mid, right = st.columns(3)
+
+    with left:
+        scenario_name = st.selectbox(
+            "🏗 Environmental Change",
+            list(scenario.SCENARIOS.keys())
+        )
+
+    with mid:
+        intensity = st.selectbox(
+            "⚡ Intensity",
+            ["Low", "Medium", "High"]
+        )
+
+    with right:
+        intervention = st.selectbox(
+            "🛠 Intervention Strategy",
+            list(scenario.INTERVENTIONS.keys())
+        )
+
+    st.caption(
+        f"**{scenario.SCENARIOS[scenario_name]['description']}**"
+    )
+
+    st.divider()
+
+    # ======================================
+    # Run Simulation
+    # ======================================
+    result = scenario.simulate_scenario(
+        df,
+        scenario_name,
+        intensity,
+        intervention
+    )
+
+    comp = result["comparison"]
+
+    # ======================================
+    # Demand Impact KPIs
+    # ======================================
+    st.subheader("📈 Estimated Demand Impacts")
+    col1, col2, col3, col4 = st.columns(4)
+
+    col1.metric(
+        "Traffic Demand Change",
+        f"+{result['traffic_impact']*100:.1f}%"
+    )
+    col2.metric(
+        "Parking Demand Change",
+        f"+{result['parking_impact']*100:.1f}%"
+    )
+    col3.metric(
+        "Avg Systemic Stress (Current)",
+        f"{comp['CurrentSystemicStress'].mean():.2f}"
+    )
+    col4.metric(
+        "Avg Systemic Stress (Future)",
+        f"{comp['FutureSystemicStress'].mean():.2f}"
+    )
+
+    st.divider()
+
+    # ======================================
+    # Current vs Future Comparison
+    # ======================================
+    st.subheader("🔄 Current vs Future Systemic Stress")
+
+    # Aggregate comparison data
+    agg = pd.DataFrame(
+        {
+            "State": ["Current", f"Future ({intensity})"],
+            "AvgSystemicStress": [
+                comp["CurrentSystemicStress"].mean(),
+                comp["FutureSystemicStress"].mean(),
+            ],
+            "AvgTrafficScore": [
+                comp["CurrentTrafficScore"].mean(),
+                comp["FutureTrafficScore"].mean(),
+            ],
+            "AvgOccupancyScore": [
+                comp["CurrentOccupancyScore"].mean(),
+                comp["FutureOccupancyScore"].mean(),
+            ],
+        }
+    )
+
+    fig = px.bar(
+        agg.melt(id_vars="State", var_name="Metric", value_name="Score"),
+        x="State",
+        y="Score",
+        color="Metric",
+        barmode="group",
+        title=f"Average Scores : {scenario_name}"
+    )
+    st.plotly_chart(fig, use_container_width=True)
+
+    # ======================================
+    # Priority Shift Distribution
+    # ======================================
+    st.subheader("🚦 Priority Shift Distribution")
+
+    current_counts = comp["CurrentPriority"].value_counts()
+    future_counts = comp["FuturePriority"].value_counts()
+
+    priority_order = ["Low", "Moderate", "High", "Critical"]
+    shift_data = pd.DataFrame(
+        {
+            "Priority": priority_order,
+            "Current": [current_counts.get(p, 0) for p in priority_order],
+            "Future": [future_counts.get(p, 0) for p in priority_order],
+        }
+    )
+
+    fig = px.bar(
+        shift_data.melt(id_vars="Priority", var_name="State", value_name="Count"),
+        x="Priority",
+        y="Count",
+        color="State",
+        barmode="group",
+        title="Facility Distribution by Priority"
+    )
+    st.plotly_chart(fig, use_container_width=True)
+
+    st.divider()
+
+    # ======================================
+    # Intervention Effectiveness Ranking
+    # ======================================
+    st.subheader("🛠 Intervention Effectiveness Ranking")
+    st.markdown(
+        "### Ranking of mitigation strategies by average future systemic stress "
+        f"for **{scenario_name} ({intensity})**"
+    )
+
+    ranking = scenario.evaluate_interventions(df, scenario_name, intensity)
+
+    fig = px.bar(
+        ranking,
+        x="AvgSystemicStress",
+        y="Intervention",
+        orientation="h",
+        color="AvgSystemicStress",
+        color_continuous_scale="RdYlGn_r",
+        title="Average Future Systemic Stress by Intervention"
+    )
+    st.plotly_chart(fig, use_container_width=True)
+
+    st.dataframe(
+        ranking,
+        use_container_width=True,
+        hide_index=True
+    )
+
+    st.divider()
+
+    # ======================================
+    # Facility-level comparison table
+    # ======================================
+    st.subheader("📋 Facility-Level Comparison")
+
+    display = comp[
+        [
+            "ParkingName",
+            "CurrentSystemicStress",
+            "FutureSystemicStress",
+            "StressDelta",
+            "CurrentPriority",
+            "FuturePriority",
+        ]
+    ].sort_values("StressDelta", ascending=False)
+
+    st.dataframe(
+        display,
+        use_container_width=True,
+        hide_index=True
+    )
+
+    # ======================================
+    # Download results
+    # ======================================
+    csv = comp.to_csv(index=False).encode("utf-8")
+    st.download_button(
+        "⬇ Download Scenario Comparison",
+        csv,
+        "scenario_comparison.csv",
+        "text/csv"
     )
 
 # ======================================

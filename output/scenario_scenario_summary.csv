@@ -1,0 +1,11 @@
+Scenario,AvgCurrentStress,AvgFutureStress,StressDelta,CriticalBefore,CriticalAfter,HighBefore,HighAfter
+New Tech Park,39.59,46.28,6.69,2,2,2,4
+Population Growth,39.59,45.06,5.47,2,2,2,3
+Shopping Mall,39.59,47.19,7.61,2,2,2,4
+Stadium,39.59,48.1,8.52,2,2,2,6
+Hospital,39.59,45.67,6.08,2,2,2,3
+School / College,39.59,44.15,4.56,2,2,2,3
+Residential Expansion,39.59,45.67,6.08,2,2,2,3
+Road Closure,39.59,42.63,3.04,2,2,2,2
+Metro Station,39.59,41.41,1.82,2,2,2,2
+Bus Terminal,39.59,41.11,1.52,2,2,2,2
