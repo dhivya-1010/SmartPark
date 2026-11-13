@@ -1,4 +1,4 @@
-# ParkIQ – Community Parking Intelligence for Urban Mobility (officially SmartPark)
+# ParkIQ – Community Parking Intelligence for Urban Mobility
 
 > **A Decision Intelligence platform for data-driven urban parking and traffic management.**
 
